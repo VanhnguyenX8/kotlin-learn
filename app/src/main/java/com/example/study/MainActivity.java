@@ -15,11 +15,15 @@ public class MainActivity extends AppCompatActivity {
 
         Button btnGoLogin = findViewById(R.id.btnGoLogin);
         Button btnGoStudentList = findViewById(R.id.btnGoStudentList);
+        Button btnGoStudentCrud = findViewById(R.id.btnGoStudentCrud);
 
         btnGoLogin.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, LoginActivity.class)));
 
         btnGoStudentList.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, StudentListActivity.class)));
+
+        btnGoStudentCrud.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, StudentCrudActivity.class)));
     }
 }

@@ -29,6 +29,10 @@
             android:name=".StudentListActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".StudentCrudActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

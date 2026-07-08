@@ -28,4 +28,11 @@
         android:layout_marginTop="16dp"
         android:text="Project 2: RecyclerView" />
 
+    <Button
+        android:id="@+id/btnGoStudentCrud"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Project 3: CRUD" />
+
 </LinearLayout>
