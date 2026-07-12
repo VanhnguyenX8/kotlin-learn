@@ -1,4 +1,7 @@
 <resources>
-    <string name="app_name">study</string>
+    <string name="app_name">Todo</string>
     <string name="hello_world">Hello world!</string>
+    <string name="hint_new_todo">Nhập việc cần làm…</string>
+    <string name="action_add">Thêm</string>
+    <string name="action_delete">Xóa</string>
 </resources>

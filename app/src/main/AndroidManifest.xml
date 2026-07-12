@@ -21,18 +21,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".StudentListActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".StudentCrudActivity"
-            android:exported="false" />
-
     </application>
 
 </manifest>
