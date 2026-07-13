@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.core.splashscreen)
     
     // Hilt
     implementation("com.google.dagger:hilt-android:2.51.1")
