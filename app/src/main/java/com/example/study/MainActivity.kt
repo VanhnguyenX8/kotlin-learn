@@ -3,55 +3,52 @@ package com.example.study
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
 
+// @AndroidEntryPoint: Đánh dấu đây là nơi Hilt sẽ "đổ" các đối tượng vào (như ViewModel).
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var storage: TodoStorage
-    private lateinit var todos: MutableList<Todo>
+    // 'by viewModels()': Một cách khởi tạo ViewModel thông minh.
+    // Nó sẽ tự động kết nối với Hilt để lấy TodoViewModel về mà bạn không cần dùng từ 'new'.
+    private val viewModel: TodoViewModel by viewModels()
+
     private lateinit var adapter: TodoAdapter
-    private var nextId = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        storage = TodoStorage(this)
-        todos = storage.load()
-        nextId = (todos.maxOfOrNull { it.id } ?: -1L) + 1L
-
         val editTodo = findViewById<EditText>(R.id.editTodo)
         val buttonAdd = findViewById<Button>(R.id.buttonAdd)
         val recyclerTodos = findViewById<RecyclerView>(R.id.recyclerTodos)
 
-        adapter = TodoAdapter(
-            todos,
-            onToggle = { todo ->
-                todo.done = !todo.done
-                storage.save(todos)
+        // LẮNG NGHE SỰ THAY ĐỔI (Observe):
+        // Đây là trái tim của MVVM. Bạn không cần tự tay cập nhật Adapter nữa.
+        // Cứ hễ dữ liệu trong ViewModel thay đổi, khối code này sẽ TỰ CHẠY.
+        viewModel.todo.observe(this) { list ->
+            if (!::adapter.isInitialized) {
+                // Khởi tạo adapter lần đầu tiên
+                adapter = TodoAdapter(list,
+                    onToggle = { viewModel.toggleTodo(it) }, // Gửi yêu cầu về ViewModel xử lý
+                    onDelete = { viewModel.deleteTodo(it) }
+                )
+                recyclerTodos.adapter = adapter
+                recyclerTodos.layoutManager = LinearLayoutManager(this)
+            } else {
+                // Khi có dữ liệu mới, chỉ cần báo cho Adapter vẽ lại
                 adapter.notifyDataSetChanged()
-            },
-            onDelete = { todo ->
-                val index = todos.indexOfFirst { it.id == todo.id }
-                if (index != -1) {
-                    todos.removeAt(index)
-                    storage.save(todos)
-                    adapter.notifyItemRemoved(index)
-                }
             }
-        )
-
-        recyclerTodos.layoutManager = LinearLayoutManager(this)
-        recyclerTodos.adapter = adapter
+        }
 
         buttonAdd.setOnClickListener {
             val title = editTodo.text.toString().trim()
             if (title.isNotEmpty()) {
-                todos.add(Todo(id = nextId++, title = title))
-                storage.save(todos)
-                adapter.notifyItemInserted(todos.size - 1)
+                viewModel.addTodo(title) // Ra lệnh cho ViewModel, không tự sửa list ở đây
                 editTodo.text.clear()
             }
         }
