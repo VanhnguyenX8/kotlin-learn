@@ -1,6 +1,9 @@
 package com.example.study
 
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.widget.Button
 import android.widget.EditText
 import androidx.activity.viewModels
@@ -16,17 +19,19 @@ class MainActivity : AppCompatActivity() {
     // 'by viewModels()': Một cách khởi tạo ViewModel thông minh.
     // Nó sẽ tự động kết nối với Hilt để lấy TodoViewModel về mà bạn không cần dùng từ 'new'.
     private val viewModel: TodoViewModel by viewModels()
+    private val airplaneModeReceiver = AirplaneModeReceiver()
 
     private lateinit var adapter: TodoAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        val filter = IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED)
+        registerReceiver(airplaneModeReceiver, filter)
         val editTodo = findViewById<EditText>(R.id.editTodo)
         val buttonAdd = findViewById<Button>(R.id.buttonAdd)
         val recyclerTodos = findViewById<RecyclerView>(R.id.recyclerTodos)
-
+        connectContact()
         // LẮNG NGHE SỰ THAY ĐỔI (Observe):
         // Đây là trái tim của MVVM. Bạn không cần tự tay cập nhật Adapter nữa.
         // Cứ hễ dữ liệu trong ViewModel thay đổi, khối code này sẽ TỰ CHẠY.
@@ -52,5 +57,36 @@ class MainActivity : AppCompatActivity() {
                 editTodo.text.clear()
             }
         }
+    }
+
+    /// vi du vao danh ba
+    fun connectContact() {
+        try {
+            var cursor = contentResolver.query(
+                ContactsContract.Contacts.CONTENT_URI, /// Dia chi thu vien danh ba
+                null, /// lay tat cac cac cot
+                null, /// khong loc hang nao
+                null, /// khong co doi so loc
+                null, /// khong sap xep
+            )
+
+            cursor?.use {
+                while (it.moveToNext()) {
+                    val nameIndex = it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                    val name = it.getString(nameIndex)
+                    println("Tên bạn bè: $name")
+                }
+            }
+        }
+
+        catch (e: Exception) {
+        print(e.printStackTrace())
+        }
+
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(airplaneModeReceiver)
     }
 }
