@@ -51,11 +51,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonAdd.setOnClickListener {
-            val title = editTodo.text.toString().trim()
-            if (title.isNotEmpty()) {
-                viewModel.addTodo(title) // Ra lệnh cho ViewModel, không tự sửa list ở đây
-                editTodo.text.clear()
-            }
+            onTapIntent()
+
+//            val title = editTodo.text.toString().trim()
+//            if (title.isNotEmpty()) {
+//                viewModel.addTodo(title) // Ra lệnh cho ViewModel, không tự sửa list ở đây
+//                editTodo.text.clear()
+//            }
         }
     }
 
@@ -84,7 +86,17 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+    fun onTapIntent() {
+        val intent = Intent(this, SecondActivity::class.java)
+        /// gửi
+        intent.putExtra("name", "Viet anh")
+               intent.putExtra("age", "22")
+        startActivity(intent)
+        /// nhận
+        val name = intent.getStringExtra("name");
+        val age = intent.getStringExtra("age")
 
+    }
     override fun onStop() {
         super.onStop()
         unregisterReceiver(airplaneModeReceiver)
