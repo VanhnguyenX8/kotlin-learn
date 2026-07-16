@@ -14,6 +14,12 @@ Lộ trình học Interface and Navigation
 -> RecyclerView (Adapter, ViewHolder, notifyItemChanged, notifyDataSetChanged)
 2. Navigation
     Android cũ (Activity -> Intent -> Activity)
+    - Nhược điểm mỗi màn hình là 1 Activity 
+        + Back stack khó quản lý
+        + Truyền dữ liệu thủ công bằng Intent
+        + Nhiều Activity
+        + Navigation bị phân tán
+        + Deep Link phức tạp hơn
     AndRoid google (Main Activity -> Fragment -> Fragment -> Fragment)
     dùng findNavController().navigate(...)
 3. Fragment

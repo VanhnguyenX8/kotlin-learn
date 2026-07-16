@@ -16,6 +16,8 @@ class LoginActivity  : AppCompatActivity() {
         binding = ActivityUiBinding.inflate(layoutInflater)
         /// hien thi giao dinen duoc khoi tao len man hinh dien thoai
         setContentView(binding.root)
+        val initText = intent.getStringExtra("username")
+        binding.edtUsername.setText(initText)
         binding.btnLogin.setOnClickListener {
             val username = binding.edtUsername.text.toString()
             val password = binding.edtPassword.text.toString()
