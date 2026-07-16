@@ -29,6 +29,10 @@
             android:name=".SecondActivity"
             android:exported="false"
             />
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            />
         <receiver
             android:name=".AirplaneModeReceiver"
             android:exported="true">
