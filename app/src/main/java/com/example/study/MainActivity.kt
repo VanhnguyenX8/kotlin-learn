@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.study.service.UserPrefs
 import dagger.hilt.android.AndroidEntryPoint
 
 // @AndroidEntryPoint: Đánh dấu đây là nơi Hilt sẽ "đổ" các đối tượng vào (như ViewModel).
@@ -65,6 +66,15 @@ class MainActivity : AppCompatActivity() {
         /// nhận
         val name = intent.getStringExtra("name");
         val age = intent.getStringExtra("age")
+
+    }
+    /// phu hop voi vai gia tri don gian (token, flag, setting nho)
+    /// API cu nen khong type-safe, doc/ ghi tren main thread co the bi block
+    /// nen dung DataStore
+    fun usePrefs () {
+        val prefs = UserPrefs(this)
+        prefs.saveLoginState(true, "anh_nguyen")
+        val usename : String = prefs.getUsername()
 
     }
     override fun onStop() {
