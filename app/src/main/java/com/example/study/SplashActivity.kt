@@ -33,7 +33,7 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun startMainActivity() {
-        val intent = Intent(this, LoginActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java)
         intent.putExtra("username", "admin")
         startActivity(intent)
         finish()

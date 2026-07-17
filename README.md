@@ -31,4 +31,7 @@ Lộ trình học Interface and Navigation
     Snackbar
     BottomSheet
 5. Jetpack Compose
+
+lưu ý với sự khác nhau của các dự án dùng Version Catalog
+
     
