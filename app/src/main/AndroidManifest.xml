@@ -26,6 +26,9 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity
+            android:name=".scene.compose.MainCompose"
+            android:exported="false" />
+        <activity
             android:name=".SecondActivity"
             android:exported="false"
             />
