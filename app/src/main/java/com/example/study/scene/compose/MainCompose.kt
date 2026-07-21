@@ -1,10 +1,10 @@
 package com.example.study.scene.compose
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.animation.core.copy
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -63,10 +62,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.room.ColumnInfo
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Delete
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.example.study.repository.SettingsRepository
 import com.example.study.viewmodel.SettingViewModelFactory
 import com.example.study.viewmodel.SettingsViewModel
-import java.nio.file.Files
 
 class MainCompose : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,9 +88,13 @@ class MainCompose : ComponentActivity(){
             SettingViewModelFactory(repo)
         }
         viewModel.onAppOpened()
+        val db = AppDataBase.getDatabase(applicationContext)
+        val taskViewModel: TaskViewModel by viewModels {
+            TaskViewModelFactory(db.taskDao())
+        }
 
         setContent {
-            FullFeaturesScreen()
+            FullFeaturesScreen(taskViewModel)
         }
     }
 }
@@ -121,13 +136,67 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 ///study full compose
 
 /// data class nos se tu sing ra toString, equals, hascode, copy
-data class SampleTask(val id: Int, val title: String, val isDone: Boolean)
+
+/// cach dung Room trong android
+/// b1: tao entiry bảng dữ liệu
+/// b2: tao DAO truy van du lieu
+/// b3: tao RomDatabase khoi tao singleton
+@Entity(tableName = "task")
+data class SampleTask(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    @ColumnInfo(name = "title")
+    val title: String,
+    @ColumnInfo(name = "is_done")
+    val isDone: Boolean
+)
+
+@Dao
+interface SampleTaskDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTask(task: SampleTask)
+
+    @Query("SELECT * FROM task")
+    suspend fun getAllTask(): List<SampleTask>
+
+    @Delete
+    suspend fun deleteTask(task: SampleTask)
+
+}
+
+/// entities = [SampleTask::class]: Khai bao danh sach cac bang trong Db nay
+/// version moi khi them xoa cot hay thay doi cau truc bang can tang version
+/// exportSchema Room se khong xuat ra cau truc gile json khi build
+@Database(entities = [SampleTask::class], version = 1, exportSchema = false)
+abstract class AppDataBase : RoomDatabase () {
+    abstract fun taskDao(): SampleTaskDao
+
+
+    /// Tao instance dang singleton
+    companion object {
+
+        /// Volatile voi cai nay dam bao instance luon duoc cap nhap ngay lap tuc
+        @Volatile
+        private  var INSTANCE: AppDataBase? = null
+
+        fun getDatabase(context: Context): AppDataBase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(context.applicationContext,
+                    AppDataBase::class.java,
+                    "app_database"
+                    ).build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
+}
 
 
 /// dung material 3 o trang thai thu nghiem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FullFeaturesScreen() {
+fun FullFeaturesScreen(viewModel: TaskViewModel) {
     // --- 1. QUẢN LÝ STATE (TRẠNG THÁI) ---
     var textInput by remember { mutableStateOf("") } // Trạng thái ô nhập liệu
     var isDarkMode by remember { mutableStateOf(false) } // Trạng thái nút Switch
@@ -135,10 +204,7 @@ fun FullFeaturesScreen() {
     var isLoading by remember { mutableStateOf(false) } // Trạng thái vòng xoay loading
 
     // Danh sách công việc (dùng mutableStateListOf để Compose tự cập nhật khi add/remove)
-    val tasks = remember { mutableStateListOf(
-        SampleTask(1, "Học Jetpack Compose", true),
-        SampleTask(2, "Code giao diện XML", false)
-    ) }
+    val tasks by viewModel.tasks.collectAsState()
 
     // --- 2. LAYOUT CHÍNH: SCAFFOLD ---
     Scaffold(
@@ -151,7 +217,7 @@ fun FullFeaturesScreen() {
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 if (textInput.isNotBlank()) {
-                    tasks.add(SampleTask(tasks.size + 1, textInput, false))
+                    viewModel.addTask(textInput)
                     textInput = "" // Reset ô nhập
                 }
             }) {
@@ -251,8 +317,7 @@ fun FullFeaturesScreen() {
                                     checked = task.isDone,
                                     onCheckedChange = { isChecked ->
                                         // Cập nhật trạng thái item (Change State)
-                                        val index = tasks.indexOf(task)
-                                        tasks[index] = task.copy(isDone = isChecked)
+                                        viewModel.toggleDone(task)
                                     }
                                 )
                                 Text(
@@ -260,7 +325,7 @@ fun FullFeaturesScreen() {
                                     modifier = Modifier.weight(1f),
                                     style = if (task.isDone) LocalTextStyle.current.copy(color = Color.Gray) else LocalTextStyle.current
                                 )
-                                IconButton(onClick = { tasks.remove(task) }) {
+                                IconButton(onClick = {  viewModel.deleteTask(task)      }) {
                                     Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red)
                                 }
                             }
@@ -290,5 +355,14 @@ fun FullFeaturesScreen() {
                 }
             }
         }
+    }
+}
+
+
+class TaskViewModelFactory(private val dao: SampleTaskDao) :
+    ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
+        return TaskViewModel(dao) as T
     }
 }
